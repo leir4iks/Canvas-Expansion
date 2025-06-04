@@ -8,7 +8,11 @@ import java.util.List;
 
 public class CanvasUtils {
 
-    public boolean isCanvas = false;
+    private boolean isCanvas = false;
+
+    public CanvasUtils() {
+        checkCanvas();
+    }
 
     public void checkCanvas() {
         try {
@@ -19,9 +23,17 @@ public class CanvasUtils {
         }
     }
 
+    public boolean isCanvasServer() {
+        return isCanvas;
+    }
+
     public List<Double> getGlobalTPS() {
+        if (!isCanvas) {
+            double[] serverTps = Bukkit.getServer().getTPS();
+            return List.of(serverTps[0], serverTps[0], serverTps[1], serverTps[2], serverTps[2]);
+        }
+
         try {
-            // Получаем глобальные TPS для всех интервалов времени
             Object server = Class.forName("io.github.dueris.canvas.server.ThreadedBukkitServer")
                     .getMethod("getInstance")
                     .invoke(null);
@@ -30,31 +42,54 @@ public class CanvasUtils {
                     .getMethod("getGlobalTickHandle")
                     .invoke(server);
             
-            double tps_5s = (Double) globalTickHandle.getClass()
+            // Получаем RollingAverage объекты и вызываем getAverage()
+            Object tps5sObj = globalTickHandle.getClass()
                     .getMethod("getTps5s")
                     .invoke(globalTickHandle);
+            double tps_5s = (Double) tps5sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps5sObj);
             
-            double tps_10s = (Double) globalTickHandle.getClass()
-                    .getMethod("getTps10s")
-                    .invoke(globalTickHandle);
-                    
-            double tps_15s = (Double) globalTickHandle.getClass()
+            Object tps15sObj = globalTickHandle.getClass()
                     .getMethod("getTps15s")
                     .invoke(globalTickHandle);
+            double tps_15s = (Double) tps15sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps15sObj);
             
-            double tps_1m = (Double) globalTickHandle.getClass()
+            Object tps1mObj = globalTickHandle.getClass()
                     .getMethod("getTps1m")
                     .invoke(globalTickHandle);
+            double tps_1m = (Double) tps1mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps1mObj);
             
-            return List.of(tps_5s, tps_10s, tps_15s, tps_1m, tps_1m);
+            Object tps5mObj = globalTickHandle.getClass()
+                    .getMethod("getTps5m")
+                    .invoke(globalTickHandle);
+            double tps_5m = (Double) tps5mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps5mObj);
+            
+            Object tps15mObj = globalTickHandle.getClass()
+                    .getMethod("getTps15m")
+                    .invoke(globalTickHandle);
+            double tps_15m = (Double) tps15mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps15mObj);
+            
+            return List.of(tps_5s, tps_5s, tps_15s, tps_1m, tps_5m, tps_15m);
         } catch (Exception e) {
-            // Fallback to server TPS if Canvas API fails
             double[] serverTps = Bukkit.getServer().getTPS();
-            return List.of(serverTps[0], serverTps[0], serverTps[1], serverTps[2], serverTps[2]);
+            return List.of(serverTps[0], serverTps[0], serverTps[1], serverTps[2], serverTps[2], serverTps[2]);
         }
     }
 
     public List<Double> getGlobalMSPT() {
+        if (!isCanvas) {
+            return List.of(20.0, 20.0, 20.0, 20.0, 20.0, 20.0);
+        }
+
         try {
             Object server = Class.forName("io.github.dueris.canvas.server.ThreadedBukkitServer")
                     .getMethod("getInstance")
@@ -64,31 +99,49 @@ public class CanvasUtils {
                     .getMethod("getGlobalTickHandle")
                     .invoke(server);
             
-            double mspt_5s = (Double) globalTickHandle.getClass()
+            Object mspt5sObj = globalTickHandle.getClass()
                     .getMethod("getMspt5s")
                     .invoke(globalTickHandle);
+            double mspt_5s = (Double) mspt5sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt5sObj);
             
-            double mspt_10s = (Double) globalTickHandle.getClass()
-                    .getMethod("getMspt10s")
-                    .invoke(globalTickHandle);
-                    
-            double mspt_15s = (Double) globalTickHandle.getClass()
+            Object mspt15sObj = globalTickHandle.getClass()
                     .getMethod("getMspt15s")
                     .invoke(globalTickHandle);
+            double mspt_15s = (Double) mspt15sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt15sObj);
             
-            double mspt_1m = (Double) globalTickHandle.getClass()
+            Object mspt1mObj = globalTickHandle.getClass()
                     .getMethod("getMspt1m")
                     .invoke(globalTickHandle);
+            double mspt_1m = (Double) mspt1mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt1mObj);
             
-            return List.of(mspt_5s, mspt_10s, mspt_15s, mspt_1m, mspt_1m);
+            Object mspt5mObj = globalTickHandle.getClass()
+                    .getMethod("getMspt5m")
+                    .invoke(globalTickHandle);
+            double mspt_5m = (Double) mspt5mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt5mObj);
+            
+            Object mspt15mObj = globalTickHandle.getClass()
+                    .getMethod("getMspt15m")
+                    .invoke(globalTickHandle);
+            double mspt_15m = (Double) mspt15mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt15mObj);
+            
+            return List.of(mspt_5s, mspt_5s, mspt_15s, mspt_1m, mspt_5m, mspt_15m);
         } catch (Exception e) {
-            // Fallback values
-            return List.of(20.0, 20.0, 20.0, 20.0, 20.0);
+            return List.of(20.0, 20.0, 20.0, 20.0, 20.0, 20.0);
         }
     }
 
     public List<Double> getTPS(Location location) {
-        if (location == null) return getGlobalTPS();
+        if (location == null || !isCanvas) return getGlobalTPS();
 
         World world = location.getWorld();
         if (world == null) return getGlobalTPS();
@@ -113,30 +166,49 @@ public class CanvasUtils {
                     .getMethod("getTickHandle")
                     .invoke(region);
             
-            double tps_5s = (Double) tickHandle.getClass()
+            Object tps5sObj = tickHandle.getClass()
                     .getMethod("getTps5s")
                     .invoke(tickHandle);
+            double tps_5s = (Double) tps5sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps5sObj);
             
-            double tps_10s = (Double) tickHandle.getClass()
-                    .getMethod("getTps10s")
-                    .invoke(tickHandle);
-                    
-            double tps_15s = (Double) tickHandle.getClass()
+            Object tps15sObj = tickHandle.getClass()
                     .getMethod("getTps15s")
                     .invoke(tickHandle);
+            double tps_15s = (Double) tps15sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps15sObj);
             
-            double tps_1m = (Double) tickHandle.getClass()
+            Object tps1mObj = tickHandle.getClass()
                     .getMethod("getTps1m")
                     .invoke(tickHandle);
+            double tps_1m = (Double) tps1mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps1mObj);
             
-            return List.of(tps_5s, tps_10s, tps_15s, tps_1m, tps_1m);
+            Object tps5mObj = tickHandle.getClass()
+                    .getMethod("getTps5m")
+                    .invoke(tickHandle);
+            double tps_5m = (Double) tps5mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps5mObj);
+            
+            Object tps15mObj = tickHandle.getClass()
+                    .getMethod("getTps15m")
+                    .invoke(tickHandle);
+            double tps_15m = (Double) tps15mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(tps15mObj);
+            
+            return List.of(tps_5s, tps_5s, tps_15s, tps_1m, tps_5m, tps_15m);
         } catch (Exception e) {
             return getGlobalTPS();
         }
     }
 
     public List<Double> getMSPT(Location location) {
-        if (location == null) return getGlobalMSPT();
+        if (location == null || !isCanvas) return getGlobalMSPT();
 
         World world = location.getWorld();
         if (world == null) return getGlobalMSPT();
@@ -161,23 +233,42 @@ public class CanvasUtils {
                     .getMethod("getTickHandle")
                     .invoke(region);
             
-            double mspt_5s = (Double) tickHandle.getClass()
+            Object mspt5sObj = tickHandle.getClass()
                     .getMethod("getMspt5s")
                     .invoke(tickHandle);
+            double mspt_5s = (Double) mspt5sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt5sObj);
             
-            double mspt_10s = (Double) tickHandle.getClass()
-                    .getMethod("getMspt10s")
-                    .invoke(tickHandle);
-                    
-            double mspt_15s = (Double) tickHandle.getClass()
+            Object mspt15sObj = tickHandle.getClass()
                     .getMethod("getMspt15s")
                     .invoke(tickHandle);
+            double mspt_15s = (Double) mspt15sObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt15sObj);
             
-            double mspt_1m = (Double) tickHandle.getClass()
+            Object mspt1mObj = tickHandle.getClass()
                     .getMethod("getMspt1m")
                     .invoke(tickHandle);
+            double mspt_1m = (Double) mspt1mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt1mObj);
             
-            return List.of(mspt_5s, mspt_10s, mspt_15s, mspt_1m, mspt_1m);
+            Object mspt5mObj = tickHandle.getClass()
+                    .getMethod("getMspt5m")
+                    .invoke(tickHandle);
+            double mspt_5m = (Double) mspt5mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt5mObj);
+            
+            Object mspt15mObj = tickHandle.getClass()
+                    .getMethod("getMspt15m")
+                    .invoke(tickHandle);
+            double mspt_15m = (Double) mspt15mObj.getClass()
+                    .getMethod("getAverage")
+                    .invoke(mspt15mObj);
+            
+            return List.of(mspt_5s, mspt_5s, mspt_15s, mspt_1m, mspt_5m, mspt_15m);
         } catch (Exception e) {
             return getGlobalMSPT();
         }
